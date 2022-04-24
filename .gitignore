@@ -1,0 +1,8 @@
+# personal env and keys
+myVars/
+
+# node modules
+node_modules/
+
+# test file
+test.js
