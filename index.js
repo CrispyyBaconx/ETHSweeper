@@ -15,27 +15,27 @@ let txn = {
     maxPriorityFeePerGas: ethers.utils.parseUnits("2.5", "gwei")
 }
 
-function getPrivateKeyArrayFromInput(array, callback) {
-    const dir_path = path.join(__dirname, 'ListInput');
+function getPrivateKeyArrayFromInput(array) {
+    return new Promise((resolve, reject) => {
+        fs.readdir(path.join(__dirname, 'ListInput'), function (err, files) {
+            if (err) {
+                reject(err);
+            } else if (files.length != 1) {
+                reject('There should be only one file in the directory.');
+            }
 
-    fs.readdir(dir_path, function (err, files) {
-        if (err) {
-            return console.log('Unable to scan directory: ' + err);
-        } else if (files.length != 1) {
-            return console.log('There should be only one file in the directory.');
-        }
+            await fs.readFile(path.join(__dirname, 'ListInput', files[0]), 'utf8').split('\n').forEach(function (line) {
+                array.push(line.replace("\r", ""));
+            });
 
-        fs.readFileSync(path.join(dir_path, files[0]), 'utf8').split('\n').forEach(function (line) {
-            array.push(line.replace("\r", ""));
+            resolve(array);
         });
-
-        callback(array);
     });
 }
 
-getPrivateKeyArrayFromInput(private_key_array, function(data) {
+getPrivateKeyArrayFromInput(private_key_array).then(data => {
     data.forEach(key => {
-        new ethers.Wallet(key, provider).sendTransaction(txn).then(tx => {
+        await (new ethers.Wallet(key, provider)).sendTransaction(txn).then(tx => {
             console.log('Transaction sent: ' + tx.hash);
         });
     });
